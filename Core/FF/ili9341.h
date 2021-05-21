@@ -315,5 +315,4 @@ void ili_draw_bitmap(uint16_t x, uint16_t y, const tImage *bitmap);
  * @param y Start row address
  */
 void ili_draw_pixel(uint16_t x, uint16_t y, uint16_t color);
-void MX_GPIO_Init(void);
 #endif
