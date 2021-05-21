@@ -1,8 +1,12 @@
 #include "controller.h"
 #include "stm32f1xx_hal.h"
+#include "stm32f1xx_hal_tim.h"
 
 int encoderVal = 0;
 int oldEncoderVal = 0;
+uint32_t compare = 999;
+extern TIM_HandleTypeDef htim4;
+
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
@@ -48,6 +52,9 @@ void readEncoderISR(){
     lastPos = posNow;
   if(encoderVal != oldEncoderVal){
     oldEncoderVal = encoderVal;
+    compare = encoderVal*2 -1;
+    __HAL_TIM_SET_AUTORELOAD(&htim4,compare);
+    __HAL_TIM_SET_COMPARE(&htim4,TIM_CHANNEL_3,compare /2 +1);
     // uprintNumber(encoderVal);
   }
 }
