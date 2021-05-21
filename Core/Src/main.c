@@ -45,8 +45,9 @@
 
 /* USER CODE BEGIN PV */
 uint32_t number;
-char buffer[50];
+char buffer[2];
 uint32_t count = 10;
+extern int encoderVal;
 
 /* USER CODE END PV */
 
@@ -104,7 +105,9 @@ int main(void)
     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_15);
     HAL_Delay(100);
     count++;
-    itoa(count, buffer, 10);
+    itoa(encoderVal, buffer, 10);
+    ili_set_address_window(0,0,50,50);
+    ili_fill_rect(0,0,100,100,ILI_COLOR_DARKCYAN);
     ili_draw_string_withbg(50, 40, buffer, ILI_COLOR_WHITE, ILI_COLOR_DARKGREEN, &font_ubuntu_mono_24);
     //ili_draw_pixel(20,20,ILI_COLOR_BLUE);
   }
