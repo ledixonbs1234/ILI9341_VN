@@ -71,9 +71,9 @@ int main(void)
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
+uint16_t df =4;
   /* USER CODE BEGIN Init */
-
+  uint64_t dkdf = 0;
   /* USER CODE END Init */
 
   /* Configure the system clock */
