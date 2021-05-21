@@ -47,6 +47,9 @@ TIM_HandleTypeDef htim4;
 /* USER CODE BEGIN PV */
 uint32_t number;
 char buffer[2];
+char bufferNumber[3];
+char tanSo[10];
+char bufferPulse[2];
 uint32_t count = 10;
 extern int encoderVal;
 
@@ -61,6 +64,19 @@ static void MX_TIM4_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void createScreen(){
+  //thuc hien tao man hinh
+  //hien so dau tien
+  itoa(10,bufferNumber,10);
+  ili_draw_string_withbg(70,90,bufferNumber,ILI_COLOR_WHITE,ILI_COLOR_BLUE,&font_ubuntu_mono_24);
+  // hien h khzfftoi
+  ili_draw_string_withbg(110,90,"KHZ",ILI_COLOR_WHITE,ILI_COLOR_BLUE,&font_ubuntu_mono_24);
+  // hien % xung
+  itoa(57,bufferPulse,10);
+  ili_draw_string_withbg(160,90,bufferPulse,ILI_COLOR_WHITE,ILI_COLOR_BLUE,&font_ubuntu_mono_24);
+  ili_draw_string_withbg(180,90,"%",ILI_COLOR_WHITE,ILI_COLOR_BLUE,&font_ubuntu_mono_24);
+  HAL_Delay(100);
+}
 
 
 /* USER CODE END 0 */
@@ -109,11 +125,12 @@ int main(void)
     /* USER CODE BEGIN 3 */
     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_15);
     HAL_Delay(100);
-    count++;
-    itoa(encoderVal, buffer, 10);
-    ili_set_address_window(0,0,50,50);
-    ili_fill_rect(0,0,100,100,ILI_COLOR_DARKCYAN);
-    ili_draw_string_withbg(50, 40, buffer, ILI_COLOR_WHITE, ILI_COLOR_DARKGREEN, &font_ubuntu_mono_24);
+    createScreen();
+    // count++;
+    // itoa(encoderVal, buffer, 10);
+    // ili_set_address_window(0,0,50,50);
+    // ili_fill_rect(0,0,100,100,ILI_COLOR_DARKCYAN);
+    // ili_draw_string_withbg(50, 40, buffer, ILI_COLOR_WHITE, ILI_COLOR_DARKGREEN, &font_ubuntu_mono_24);
     //ili_draw_pixel(20,20,ILI_COLOR_BLUE);
   }
   /* USER CODE END 3 */
