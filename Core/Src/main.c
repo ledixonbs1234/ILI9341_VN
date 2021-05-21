@@ -109,7 +109,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_15);
-    HAL_Delay(5);
+    HAL_Delay(100);
     count++;
     itoa(count, buffer, 10);
     ili_draw_string_withbg(10, 40, buffer, ILI_COLOR_WHITE, ILI_COLOR_DARKGREEN, &font_ubuntu_mono_24);

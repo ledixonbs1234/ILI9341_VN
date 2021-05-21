@@ -1,26 +1,26 @@
 #include "ili9341.h"
+#include "gpio.h"
 
 uint32_t inReg;
 uint32_t opReg;
 uint32_t ftReg;
 
-#define ILI_WR_ACTIVE                       \
-	{                                       \
-		inReg = EXTI->IMR;                  \
-		opReg = GPIOB->ODR;                 \
-		ftReg = EXTI->FTSR;                 \
-		EXTI->IMR = 0;                      \
-		EXTI->FTSR = 0;                     \
-		GPIOB->CRL = 0x33333333;            \
-		GPIOC->BSRR = (GPIO_PIN_15 << 16u); \
+#define PUSHCODE                 \
+	{                            \
+		inReg = EXTI->IMR;       \
+		opReg = GPIOB->ODR;      \
+		ftReg = EXTI->FTSR;      \
+		EXTI->IMR = 0;           \
+		EXTI->FTSR = 0;          \
+		GPIOB->CRL = 0x33333333; \
 	}
-#define ILI_WR_IDLE                \
-	{                              \
-		GPIOB->ODR = opReg;        \
-		GPIOC->BSRR = GPIO_PIN_15; \
-		GPIOB->CRL = 0x88888888;   \
-		EXTI->FTSR = ftReg;        \
-		EXTI->IMR = inReg;         \
+
+#define POPCODE                  \
+	{                            \
+		GPIOB->ODR = opReg;      \
+		GPIOB->CRL = 0x88888888; \
+		EXTI->FTSR = ftReg;      \
+		EXTI->IMR = inReg;       \
 	}
 
 /*
@@ -71,6 +71,8 @@ void ili_init()
 	ILI_RST_IDLE;
 
 	HAL_Delay(10);
+
+	PUSHCODE;
 
 	_ili_write_command_8bit(0xEF);
 	_ili_write_data_8bit(0x03);
@@ -179,9 +181,10 @@ void ili_init()
 	//delay 150ms if display output is inaccurate
 
 	_ili_write_command_8bit(ILI_DISPON); //Display on
-										 //delay 150ms if display output is inaccurate
-}
+	//delay 150ms if display output is inaccurate
 
+	POPCODE;
+}
 
 /**
  * Set an area for drawing on the display with start row,col and end row,col.
@@ -339,10 +342,12 @@ void _ili_draw_string_main(uint16_t x, uint16_t y, char *str, uint16_t fore_colo
 				y_temp += (height + y_padding); //go to next row
 			}
 
+			PUSHCODE;
 			if (is_bg)
 				_ili_render_glyph(x_temp, y_temp, fore_color, back_color, img, 1);
 			else
 				_ili_render_glyph(x_temp, y_temp, fore_color, back_color, img, 0);
+			POPCODE;
 			x_temp += (width + x_padding); //next char position
 		}
 
@@ -569,8 +574,10 @@ void ili_fill_rect_fast(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16
  */
 void ili_fill_screen(uint16_t color)
 {
+	PUSHCODE;
 	ili_set_address_window(0, 0, ili_tftwidth - 1, ili_tftheight - 1);
 	ili_fill_color(color, (uint32_t)ili_tftwidth * (uint32_t)ili_tftheight);
+	POPCODE;
 }
 
 /**
@@ -791,6 +798,7 @@ void ili_rotate_display(uint8_t rotation)
 
 	uint16_t new_height = 320;
 	uint16_t new_width = 240;
+	PUSHCODE;
 
 	switch (rotation)
 	{
@@ -819,4 +827,5 @@ void ili_rotate_display(uint8_t rotation)
 		ili_tftwidth = new_height;
 		break;
 	}
+	POPCODE;
 }
