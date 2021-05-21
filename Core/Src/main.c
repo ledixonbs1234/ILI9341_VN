@@ -58,14 +58,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-  /* Prevent unused argument(s) compilation warning */
-  UNUSED(GPIO_Pin);
-  /* NOTE: This function Should not be modified, when the callback is needed,
-           the HAL_GPIO_EXTI_Callback could be implemented in the user file
-   */
-}
+
 
 /* USER CODE END 0 */
 
@@ -112,7 +105,8 @@ int main(void)
     HAL_Delay(100);
     count++;
     itoa(count, buffer, 10);
-    ili_draw_string_withbg(10, 40, buffer, ILI_COLOR_WHITE, ILI_COLOR_DARKGREEN, &font_ubuntu_mono_24);
+    ili_draw_string_withbg(50, 40, buffer, ILI_COLOR_WHITE, ILI_COLOR_DARKGREEN, &font_ubuntu_mono_24);
+    //ili_draw_pixel(20,20,ILI_COLOR_BLUE);
   }
   /* USER CODE END 3 */
 }

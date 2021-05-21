@@ -4,24 +4,33 @@
 uint32_t inReg;
 uint32_t opReg;
 uint32_t ftReg;
+uint32_t numberTrung = 0;
 
-#define PUSHCODE                 \
-	{                            \
-		inReg = EXTI->IMR;       \
-		opReg = GPIOB->ODR;      \
-		ftReg = EXTI->FTSR;      \
-		EXTI->IMR = 0;           \
-		EXTI->FTSR = 0;          \
-		GPIOB->CRL = 0x33333333; \
+void PUSHCODE()
+{
+	if (numberTrung == 0)
+	{
+		inReg = EXTI->IMR;
+		opReg = GPIOB->ODR;
+		ftReg = EXTI->FTSR;
+		EXTI->IMR = 0;
+		EXTI->FTSR = 0;
+		GPIOB->CRL = 0x33333333;
 	}
+	numberTrung++;
+}
 
-#define POPCODE                  \
-	{                            \
-		GPIOB->ODR = opReg;      \
-		GPIOB->CRL = 0x88888888; \
-		EXTI->FTSR = ftReg;      \
-		EXTI->IMR = inReg;       \
+void POPCODE()
+{
+	numberTrung--;
+	if (numberTrung == 0)
+	{
+		GPIOB->ODR = opReg;
+		GPIOB->CRL = 0x88888888;
+		EXTI->FTSR = ftReg;
+		EXTI->IMR = inReg;
 	}
+}
 
 /*
  * Inline function to send 8 bit command to the display
@@ -72,7 +81,7 @@ void ili_init()
 
 	HAL_Delay(10);
 
-	PUSHCODE;
+	PUSHCODE();
 
 	_ili_write_command_8bit(0xEF);
 	_ili_write_data_8bit(0x03);
@@ -183,7 +192,7 @@ void ili_init()
 	_ili_write_command_8bit(ILI_DISPON); //Display on
 	//delay 150ms if display output is inaccurate
 
-	POPCODE;
+	POPCODE();
 }
 
 /**
@@ -196,6 +205,7 @@ void ili_init()
  */
 void ili_set_address_window(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 {
+	PUSHCODE();
 	_ili_write_command_8bit(ILI_CASET);
 
 	ILI_DC_DAT;
@@ -212,6 +222,7 @@ void ili_set_address_window(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 	ILI_WRITE_8BIT((uint8_t)y2);
 
 	_ili_write_command_8bit(ILI_RAMWR);
+	POPCODE();
 }
 
 /*
@@ -342,12 +353,12 @@ void _ili_draw_string_main(uint16_t x, uint16_t y, char *str, uint16_t fore_colo
 				y_temp += (height + y_padding); //go to next row
 			}
 
-			PUSHCODE;
+			PUSHCODE();
 			if (is_bg)
 				_ili_render_glyph(x_temp, y_temp, fore_color, back_color, img, 1);
 			else
 				_ili_render_glyph(x_temp, y_temp, fore_color, back_color, img, 0);
-			POPCODE;
+			POPCODE();
 			x_temp += (width + x_padding); //next char position
 		}
 
@@ -381,10 +392,12 @@ void ili_draw_char(uint16_t x, uint16_t y, char character, uint16_t fore_color, 
 	{
 		return;
 	}
+	PUSHCODE();
 	if (is_bg)
 		_ili_render_glyph(x, y, fore_color, back_color, img, 1);
 	else
 		_ili_render_glyph(x, y, fore_color, back_color, img, 0);
+	POPCODE();
 }
 
 /**
@@ -448,6 +461,7 @@ void ili_draw_bitmap(uint16_t x, uint16_t y, const tImage *bitmap)
 
 	uint16_t total_pixels = width * height;
 
+	PUSHCODE();
 	ili_set_address_window(x, y, x + width - 1, y + height - 1);
 
 	ILI_DC_DAT;
@@ -456,6 +470,7 @@ void ili_draw_bitmap(uint16_t x, uint16_t y, const tImage *bitmap)
 		ILI_WRITE_8BIT((uint8_t)(bitmap->data[2 * pixels]));
 		ILI_WRITE_8BIT((uint8_t)(bitmap->data[2 * pixels + 1]));
 	}
+	POPCODE();
 }
 
 /**
@@ -473,6 +488,8 @@ void ili_fill_color(uint16_t color, uint32_t len)
 	uint8_t pass_count;
 	uint8_t color_high = color >> 8;
 	uint8_t color_low = color;
+
+	PUSHCODE();
 
 	ILI_DC_DAT;
 	// Write first pixel
@@ -535,6 +552,7 @@ void ili_fill_color(uint16_t color, uint32_t len)
 			ILI_WRITE_8BIT(color_low);
 		}
 	}
+	POPCODE();
 }
 
 /**
@@ -554,9 +572,10 @@ void ili_fill_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t colo
 		w = ili_tftwidth - x;
 	if (y + h - 1 >= ili_tftheight)
 		h = ili_tftheight - y;
-
+	PUSHCODE();
 	ili_set_address_window(x, y, x + w - 1, y + h - 1);
 	ili_fill_color(color, (uint32_t)w * (uint32_t)h);
+	POPCODE();
 }
 
 /*
@@ -564,8 +583,10 @@ void ili_fill_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t colo
  */
 void ili_fill_rect_fast(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t color)
 {
+	PUSHCODE();
 	ili_set_address_window(x1, y1, x1 + w - 1, y1 + h - 1);
 	ili_fill_color(color, (uint32_t)w * (uint32_t)h);
+	POPCODE();
 }
 
 /**
@@ -574,10 +595,10 @@ void ili_fill_rect_fast(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16
  */
 void ili_fill_screen(uint16_t color)
 {
-	PUSHCODE;
+	PUSHCODE();
 	ili_set_address_window(0, 0, ili_tftwidth - 1, ili_tftheight - 1);
 	ili_fill_color(color, (uint32_t)ili_tftwidth * (uint32_t)ili_tftheight);
-	POPCODE;
+	POPCODE();
 }
 
 /**
@@ -592,11 +613,12 @@ void ili_draw_rectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t
 		w = ili_tftwidth - x;
 	if (y + h - 1 >= ili_tftheight)
 		h = ili_tftheight - y;
-
+	PUSHCODE();
 	_ili_draw_fast_h_line(x, y, x + w - 1, 1, color);
 	_ili_draw_fast_h_line(x, y + h, x + w - 1, 1, color);
 	_ili_draw_fast_v_line(x, y, y + h - 1, 1, color);
 	_ili_draw_fast_v_line(x + w, y, y + h - 1, 1, color);
+	POPCODE();
 }
 
 /*
@@ -620,7 +642,7 @@ void _ili_plot_line_low(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint
 	int16_t D = 2 * dy - dx;
 	uint16_t y = y0;
 	uint16_t x = x0;
-
+	PUSHCODE();
 	while (x <= x1)
 	{
 		ili_set_address_window(x, y, x + width - 1, y + width - 1);
@@ -640,6 +662,7 @@ void _ili_plot_line_low(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint
 		D = D + 2 * dy;
 		x++;
 	}
+	POPCODE();
 }
 
 /*
@@ -664,7 +687,7 @@ void _ili_plot_line_high(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uin
 	int16_t D = 2 * dx - dy;
 	uint16_t y = y0;
 	uint16_t x = x0;
-
+	PUSHCODE();
 	while (y <= y1)
 	{
 		ili_set_address_window(x, y, x + width - 1, y + width - 1);
@@ -684,6 +707,7 @@ void _ili_plot_line_high(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uin
 		D = D + 2 * dx;
 		y++;
 	}
+	POPCODE();
 }
 
 /**
@@ -701,7 +725,7 @@ void ili_draw_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint8_t w
 	* Brehensen's algorithm is used.
 	* Not necessarily start points has to be less than end points.
 	*/
-
+	PUSHCODE();
 	if (x0 == x1) //vertical line
 	{
 		_ili_draw_fast_v_line(x0, y0, y1, width, color);
@@ -729,6 +753,7 @@ void ili_draw_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint8_t w
 				_ili_plot_line_high(x0, y0, x1, y1, width, color);
 		}
 	}
+	POPCODE();
 }
 
 /*
@@ -775,11 +800,12 @@ void ili_draw_pixel(uint16_t x, uint16_t y, uint16_t color)
 	* Why?: This function is mainly added in the driver so that  ui libraries can use it.
 	* example: LittlevGL requires user to supply a function that can draw pixel
 	*/
-
+	PUSHCODE();
 	ili_set_address_window(x, y, x, y);
 	ILI_DC_DAT;
 	ILI_WRITE_8BIT((uint8_t)(color >> 8));
 	ILI_WRITE_8BIT((uint8_t)color);
+	POPCODE();
 }
 
 /**
@@ -798,7 +824,7 @@ void ili_rotate_display(uint8_t rotation)
 
 	uint16_t new_height = 320;
 	uint16_t new_width = 240;
-	PUSHCODE;
+	PUSHCODE();
 
 	switch (rotation)
 	{
@@ -827,5 +853,5 @@ void ili_rotate_display(uint8_t rotation)
 		ili_tftwidth = new_height;
 		break;
 	}
-	POPCODE;
+	POPCODE();
 }
