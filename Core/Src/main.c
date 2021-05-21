@@ -48,8 +48,11 @@ TIM_HandleTypeDef htim4;
 uint32_t number;
 char buffer[2];
 char bufferNumber[3];
-char tanSo[10];
+// extern char tanSo[10];
 char bufferPulse[2];
+extern uint16_t setNumber;
+extern uint8_t setPulse;
+extern uint16_t setTanSo;
 uint32_t count = 10;
 extern int encoderVal;
 
@@ -64,20 +67,21 @@ static void MX_TIM4_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void createScreen(){
+void createScreen()
+{
+  ili_fill_rect(60,90,200,50,ILI_COLOR_DARKCYAN);
   //thuc hien tao man hinh
   //hien so dau tien
-  itoa(10,bufferNumber,10);
-  ili_draw_string_withbg(70,90,bufferNumber,ILI_COLOR_WHITE,ILI_COLOR_BLUE,&font_ubuntu_mono_24);
+  itoa(setNumber, bufferNumber, 10);
+  ili_draw_string_withbg(70, 90, bufferNumber, ILI_COLOR_WHITE, ILI_COLOR_BLUE, &font_ubuntu_mono_24);
   // hien h khzfftoi
-  ili_draw_string_withbg(110,90,"KHZ",ILI_COLOR_WHITE,ILI_COLOR_BLUE,&font_ubuntu_mono_24);
+  ili_draw_string_withbg(110, 90, setTanSo==0?"Hz":"KHz", ILI_COLOR_WHITE, ILI_COLOR_BLUE, &font_ubuntu_mono_24);
   // hien % xung
-  itoa(57,bufferPulse,10);
-  ili_draw_string_withbg(160,90,bufferPulse,ILI_COLOR_WHITE,ILI_COLOR_BLUE,&font_ubuntu_mono_24);
-  ili_draw_string_withbg(180,90,"%",ILI_COLOR_WHITE,ILI_COLOR_BLUE,&font_ubuntu_mono_24);
+  itoa(setPulse, bufferPulse, 10);
+  ili_draw_string_withbg(160, 90, bufferPulse, ILI_COLOR_WHITE, ILI_COLOR_BLUE, &font_ubuntu_mono_24);
+  ili_draw_string_withbg(200, 90, "%", ILI_COLOR_WHITE, ILI_COLOR_BLUE, &font_ubuntu_mono_24);
   HAL_Delay(100);
 }
-
 
 /* USER CODE END 0 */
 
@@ -112,7 +116,7 @@ int main(void)
   ili_init();
   ili_rotate_display(3);
   ili_fill_screen(ILI_COLOR_BLACK);
-   HAL_TIM_PWM_Start(&htim4,TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
 
   /* USER CODE END 2 */
 
@@ -161,8 +165,7 @@ void SystemClock_Config(void)
   }
   /** Initializes the CPU, AHB and APB buses clocks
   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -230,7 +233,6 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 2 */
   HAL_TIM_MspPostInit(&htim4);
-
 }
 /* USER CODE BEGIN 4 */
 
@@ -251,7 +253,7 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.

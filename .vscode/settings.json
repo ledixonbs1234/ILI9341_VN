@@ -2,6 +2,7 @@
     "cortex-debug.armToolchainPath": "D:\\STM32_CODE\\TOOLS\\GCC-ARM-NONE-EABI-10-2020-Q4-MAJOR\\BIN",
     "cortex-debug.openocdPath": "D:\\STM32_CODE\\TOOLS\\OPENOCD-20210503-0.11.0\\BIN\\OPENOCD.EXE",
     "files.associations": {
-        "stm32f1xx_hal_tim.h": "c"
+        "stm32f1xx_hal_tim.h": "c",
+        "string": "c"
     }
 }
