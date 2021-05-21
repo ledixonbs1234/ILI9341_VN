@@ -86,4 +86,5 @@ void MX_GPIO_Init(void)
 	HAL_NVIC_EnableIRQ(ADC1_2_IRQn);
 	HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 	HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+	HAL_NVIC_EnableIRQ(EXTI4_IRQn);
 }

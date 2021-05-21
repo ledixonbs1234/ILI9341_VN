@@ -1,1 +1,1 @@
-[{"node":"EXTI","expanded":false,"format":0,"pinned":true},{"node":"GPIOB","expanded":false,"format":0,"pinned":true},{"node":"NVIC","expanded":true,"format":0,"pinned":true}]
+[{"node":"AFIO","expanded":false,"format":0,"pinned":true},{"node":"EXTI","expanded":false,"format":0,"pinned":true},{"node":"GPIOB","expanded":false,"format":0,"pinned":true},{"node":"NVIC","expanded":true,"format":0,"pinned":true},{"node":"NVIC.ISER0","expanded":true,"format":0}]
