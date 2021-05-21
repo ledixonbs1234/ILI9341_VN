@@ -3,6 +3,8 @@
     {
       "name": "STM32",
       "includePath": [
+        "Core/FF",
+        "Core/FF/fonts",
         "Core/Inc",
         "Drivers/CMSIS/Device/ST/STM32F1xx/Include",
         "Drivers/CMSIS/Include",
