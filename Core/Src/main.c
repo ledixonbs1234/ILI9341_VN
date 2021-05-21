@@ -64,7 +64,6 @@ static void MX_GPIO_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  uint16_t df = 0;
 
   /* USER CODE END 1 */
 
