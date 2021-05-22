@@ -120,6 +120,75 @@ void thietLapXungRa()
     __HAL_TIM_SET_AUTORELOAD(&htim4, compare);
     __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, compare / 2 + 1);
 }
+uint8_t countRead = 0;
+uint8_t isWaiting = 0;
+
+uint32_t time = 0;
+uint32_t currentTime = 0;
+uint8_t test = 0;
+
+void readE()
+{
+
+    static uint8_t lastPos = 0x00;
+
+    uint8_t aNow = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_0);
+    uint8_t bNow = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1);
+
+    uint8_t tempNow = aNow << 1 | bNow;
+    if (tempNow == 0b10 && !isWaiting)
+    {
+        test = 1;
+        isWaiting = 1;
+        lastPos = tempNow;
+        return;
+    }
+    if (tempNow == 0b01 && !isWaiting)
+    {
+        test = 1;
+        isWaiting = 1;
+        lastPos = tempNow;
+        return;
+    }
+    if (tempNow == 0b00 && isWaiting && lastPos == 0b10)
+    {
+        currentTime = HAL_GetTick();
+        if (currentTime - time > 5)
+        {
+            isWaiting = 0;
+            encoderVal++;
+            countRead++;
+        }
+    }
+    if (tempNow == 0b11 && isWaiting && lastPos == 0b01)
+    {
+        currentTime = HAL_GetTick();
+        if (currentTime - time > 5)
+        {
+            isWaiting = 0;
+
+            encoderVal++;
+            countRead++;
+        }
+    }
+    // if (tempNow == 0b00 && isWaiting && lastPos == 0b01)
+    // {
+    //     isWaiting = 0;
+    //     encoderVal--;
+    //     countRead--;
+    // }
+    // if (tempNow == 0b11 && isWaiting && lastPos == 0b10)
+    // {
+    //     isWaiting = 0;
+    //     encoderVal--;
+    //     countRead--;
+    // }
+
+    // uint8_t posNow = aNow << 1 | bNow;
+    // if(posNow == 0b00 && lastPos == 0b10){
+    // encoderVal++;
+    // }
+}
 
 void readEncoderISR()
 {
