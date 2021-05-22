@@ -5,8 +5,10 @@
 
 int encoderVal = 0;
 int oldEncoderVal = 0;
-uint32_t compare = 999;
+float compare = 999;
 extern TIM_HandleTypeDef htim4;
+
+void readE();
 
 typedef enum
 {
@@ -17,9 +19,13 @@ typedef enum
 
 Tan_so tan_so = PULSE_NUMBER;
 uint8_t cheDoNumber = 1;
-uint16_t setNumber = 10;
+uint16_t setNumber = 39;
+uint16_t _setNumberOLD = 0;
 uint16_t setTanSo = 0;
+uint16_t _setTanSoOLD = 0;
 uint8_t setPulse = 50;
+uint8_t _setPulseOLD = 0;
+uint8_t toggleEncoder = 0;
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
@@ -29,11 +35,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     {
     case GPIO_PIN_0:
     case GPIO_PIN_1:
-        readEncoderISR();
+        // readEncoderISR();
+        readE();
         break;
     case GPIO_PIN_4:
         //Neu phim nay duoc nhan
-        if (tan_so == PULSE_NUMBER && cheDoNumber < 3)
+        if (tan_so == PULSE_NUMBER && cheDoNumber < 4)
         {
             cheDoNumber += 1;
         }
@@ -113,14 +120,74 @@ void xuLyTinHieu(uint8_t isHigh)
         break;
     }
 }
+uint32_t giatri = 0;
+float tinhxung = 0;
+uint32_t preXung = 72000000;
+uint32_t preSet = 0;
+uint32_t chiaPre;
+uint32_t checkGiaTri;
+uint32_t cnt;
+uint32_t checkPulse;
 
 void thietLapXungRa()
 {
-    compare = encoderVal * 2 - 1;
-    __HAL_TIM_SET_AUTORELOAD(&htim4, compare);
-    __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, compare / 2 + 1);
+    //xu ly tin hieu xung ra
+    //kiem tra du lieu  co cap nhat khong
+    if (setNumber == _setNumberOLD && setTanSo == _setTanSoOLD && _setPulseOLD == setPulse)
+    {
+        return;
+    }
+    _setPulseOLD = setPulse;
+    _setNumberOLD = setNumber;
+    _setTanSoOLD = setTanSo;
+
+    if (setTanSo)
+    {
+        giatri = setNumber * 1000;
+    }
+    else
+    {
+        giatri = setNumber * 1;
+    }
+    //thuc hien xu ly de dua ra ket qua dung nhat
+    // uint16_t i = 0;
+    // while (i < 720)
+    // {
+    //     i++;
+    //     preSet = i;
+    //     //kiem tra compare co chia het cho compare va % khong
+    //     chiaPre = preXung % i;
+    //     if (chiaPre == 0)
+    //     {
+    //         checkGiaTri = (preXung / i) % giatri;
+    //         if (checkGiaTri == 0)
+    //         {
+    //             cnt = ((preXung / i) / giatri);
+    //             if (cnt > 65000)
+    //             {
+    //                 checkPulse = cnt % 100;
+    //                 if (checkPulse != 0)
+    //                 {
+    //                     compare = cnt;
+    //                     tinhxung = (compare / 100) * setPulse;
+    //                     break;
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+
+    compare = 2000000 / giatri;
+    tinhxung = (compare / 100) * setPulse;
+    __HAL_TIM_SET_AUTORELOAD(&htim4, compare-1);
+    __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, tinhxung);
+
+    // __HAL_TIM_SET_PRESCALER(&htim4, preSet - 1);
+    // __HAL_TIM_SET_AUTORELOAD(&htim4, compare - 1);
+    // __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, tinhxung);
 }
 uint8_t countRead = 0;
+uint8_t oldCountRead = 0;
 uint8_t isWaiting = 0;
 
 uint32_t time = 0;
@@ -129,6 +196,7 @@ uint8_t test = 0;
 
 void readE()
 {
+    currentTime = HAL_GetTick();
 
     static uint8_t lastPos = 0x00;
 
@@ -136,41 +204,53 @@ void readE()
     uint8_t bNow = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1);
 
     uint8_t tempNow = aNow << 1 | bNow;
-    if (tempNow == 0b10 && !isWaiting)
+    if (tempNow == 0b10)
     {
-        test = 1;
-        isWaiting = 1;
         lastPos = tempNow;
         return;
     }
-    if (tempNow == 0b01 && !isWaiting)
+    if (tempNow == 0b01)
     {
-        test = 1;
-        isWaiting = 1;
         lastPos = tempNow;
         return;
     }
-    if (tempNow == 0b00 && isWaiting && lastPos == 0b10)
-    {
-        currentTime = HAL_GetTick();
-        if (currentTime - time > 5)
-        {
-            isWaiting = 0;
-            encoderVal++;
-            countRead++;
-        }
-    }
-    if (tempNow == 0b11 && isWaiting && lastPos == 0b01)
-    {
-        currentTime = HAL_GetTick();
-        if (currentTime - time > 5)
-        {
-            isWaiting = 0;
 
-            encoderVal++;
-            countRead++;
-        }
+    if (currentTime - time < 5)
+    {
+        time = currentTime;
+        return;
     }
+    time = currentTime;
+    if (tempNow == 0b00 && lastPos == 0b10)
+    {
+        encoderVal++;
+        countRead++;
+    }
+    else if (tempNow == 0b11 && lastPos == 0b10)
+    {
+        countRead++;
+    }
+    else if (tempNow == 0b00 && lastPos == 0b01)
+    {
+        countRead--;
+    }
+    else if (tempNow == 0b11 && lastPos == 0b01)
+    {
+        countRead--;
+    }
+    if (countRead != oldCountRead)
+    {
+
+        countRead++;
+        if (countRead - oldCountRead > 0)
+            xuLyTinHieu(1);
+        else
+            xuLyTinHieu(0);
+        thietLapXungRa();
+        oldCountRead = countRead;
+        // uprintNumber(encoderVal);
+    }
+
     // if (tempNow == 0b00 && isWaiting && lastPos == 0b01)
     // {
     //     isWaiting = 0;
@@ -200,29 +280,30 @@ void readEncoderISR()
     uint8_t posNow = aNow << 1 | bNow;
     if ((lastPos == 0b01) && (posNow == 0b11))
         encoderVal++;
-    else if ((lastPos == 0b11) && (posNow == 0b10))
-        encoderVal++;
+    // else if ((lastPos == 0b11) && (posNow == 0b10))
+    // encoderVal++;
     else if ((lastPos == 0b10) && (posNow == 0b00))
         encoderVal++;
-    else if ((lastPos == 0b00) && (posNow == 0b01))
-        encoderVal++;
-    else if ((lastPos == 0b00) && (posNow == 0b10))
-        encoderVal--;
+    // else if ((lastPos == 0b00) && (posNow == 0b01))
+    // encoderVal++;
+    // else if ((lastPos == 0b00) && (posNow == 0b10))
+    // encoderVal--;
     else if ((lastPos == 0b10) && (posNow == 0b11))
         encoderVal--;
-    else if ((lastPos == 0b11) && (posNow == 0b01))
-        encoderVal--;
+    // else if ((lastPos == 0b11) && (posNow == 0b01))
+    // encoderVal--;
     else if ((lastPos == 0b01) && (posNow == 0b00))
         encoderVal--;
     lastPos = posNow;
     if (encoderVal != oldEncoderVal)
     {
+
+        countRead++;
         if (encoderVal - oldEncoderVal > 0)
             xuLyTinHieu(1);
         else
             xuLyTinHieu(0);
         oldEncoderVal = encoderVal;
-
         thietLapXungRa();
         // uprintNumber(encoderVal);
     }

@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include "ili9341.h"
 #include "font_ubuntu_mono_24.h"
+#include "controller.h"
 
 /* USER CODE END Includes */
 
@@ -51,8 +52,11 @@ char bufferNumber[3];
 // extern char tanSo[10];
 char bufferPulse[2];
 extern uint16_t setNumber;
+uint16_t setNumberOLD = 0;
 extern uint8_t setPulse;
+uint8_t setPulseOLD;
 extern uint16_t setTanSo;
+uint16_t setTanSoOLD;
 uint32_t count = 10;
 extern int encoderVal;
 
@@ -60,6 +64,7 @@ extern int encoderVal;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
 static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -69,6 +74,14 @@ static void MX_TIM4_Init(void);
 /* USER CODE BEGIN 0 */
 void createScreen()
 {
+  //kiem tra gia tri truoc do
+  if(setTanSo==setTanSoOLD&&setNumber==setNumberOLD&&setPulse==setPulseOLD){
+    return;
+  }
+  setTanSoOLD = setTanSo;
+  setNumberOLD = setNumber;
+  setPulseOLD = setPulse;
+
   ili_fill_rect(60,90,200,50,ILI_COLOR_DARKCYAN);
   //thuc hien tao man hinh
   //hien so dau tien
@@ -80,7 +93,7 @@ void createScreen()
   itoa(setPulse, bufferPulse, 10);
   ili_draw_string_withbg(160, 90, bufferPulse, ILI_COLOR_WHITE, ILI_COLOR_BLUE, &font_ubuntu_mono_24);
   ili_draw_string_withbg(200, 90, "%", ILI_COLOR_WHITE, ILI_COLOR_BLUE, &font_ubuntu_mono_24);
-  HAL_Delay(100);
+  HAL_Delay(50);
 }
 
 /* USER CODE END 0 */
@@ -111,6 +124,7 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
+  MX_GPIO_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   ili_init();
@@ -129,12 +143,13 @@ int main(void)
     /* USER CODE BEGIN 3 */
     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_15);
     HAL_Delay(100);
+    
     createScreen();
     // count++;
-    // itoa(encoderVal, buffer, 10);
-    // ili_set_address_window(0,0,50,50);
-    // ili_fill_rect(0,0,100,100,ILI_COLOR_DARKCYAN);
-    // ili_draw_string_withbg(50, 40, buffer, ILI_COLOR_WHITE, ILI_COLOR_DARKGREEN, &font_ubuntu_mono_24);
+    //  itoa(encoderVal, buffer, 10);
+    //  ili_set_address_window(0,0,50,50);
+    //  ili_fill_rect(0,0,100,100,ILI_COLOR_DARKCYAN);
+    //  ili_draw_string_withbg(50, 40, buffer, ILI_COLOR_WHITE, ILI_COLOR_DARKGREEN, &font_ubuntu_mono_24);
     //ili_draw_pixel(20,20,ILI_COLOR_BLUE);
   }
   /* USER CODE END 3 */
@@ -165,7 +180,8 @@ void SystemClock_Config(void)
   }
   /** Initializes the CPU, AHB and APB buses clocks
   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -197,9 +213,9 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 1 */
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 35;
+  htim4.Init.Prescaler = 36;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 999;
+  htim4.Init.Period = 1000;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
@@ -233,7 +249,38 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 2 */
   HAL_TIM_MspPostInit(&htim4);
+
 }
+
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pins : PB4 PB5 PB6 PB7 */
+  GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+
+}
+
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
@@ -253,7 +300,7 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef USE_FULL_ASSERT
+#ifdef  USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.

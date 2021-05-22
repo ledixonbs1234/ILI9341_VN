@@ -2,6 +2,7 @@
 #define __CONTROLLER_H__
 
 void readEncoderISR();
+void thietLapXungRa();
 
 
 #endif
