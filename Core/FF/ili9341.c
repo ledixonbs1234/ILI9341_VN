@@ -12,9 +12,9 @@ void PUSHCODE()
 	{
 		inReg = EXTI->IMR;
 		opReg = GPIOB->ODR;
-		ftReg = EXTI->FTSR;
+		// ftReg = EXTI->FTSR;
 		EXTI->IMR = 0;
-		EXTI->FTSR = 0;
+		// EXTI->FTSR = 0;
 		GPIOB->CRL = 0x33333333;
 	}
 	numberTrung++;
@@ -27,7 +27,7 @@ void POPCODE()
 	{
 		GPIOB->ODR = opReg;
 		GPIOB->CRL = 0x88888888;
-		EXTI->FTSR = ftReg;
+		// EXTI->FTSR = ftReg;
 		EXTI->IMR = inReg;
 	}
 }

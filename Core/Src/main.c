@@ -62,15 +62,18 @@ extern int encoderVal;
 char bufferTest[3];
 char bufferTest1[10];
 char bufferTest2[10];
+char bufferCheDoNumber[10];
 extern uint32_t test1;
 extern uint32_t test2;
 extern uint32_t countTest;
+extern Tan_so tan_so;
+extern uint8_t cheDoNumber;
+uint8_t cheDoNumberOLD;
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
 static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -83,15 +86,39 @@ void createScreen()
 {
 
   //kiem tra gia tri truoc do
-  if (setTanSo == setTanSoOLD && setNumber == setNumberOLD && setPulse == setPulseOLD)
+  if (setTanSo == setTanSoOLD && setNumber == setNumberOLD && setPulse == setPulseOLD && cheDoNumber == cheDoNumberOLD)
   {
     return;
   }
   setTanSoOLD = setTanSo;
   setNumberOLD = setNumber;
   setPulseOLD = setPulse;
+  cheDoNumberOLD = cheDoNumber;
 
-  ili_fill_rect(60, 90, 200, 50, ILI_COLOR_DARKCYAN);
+
+  ili_fill_rect(40, 30, 200, 110, ILI_COLOR_DARKCYAN);
+
+
+
+  
+  //cap nhat mui ten
+  switch (tan_so)
+  {
+  case PULSE_NUMBER:
+    ili_draw_rectangle(80,60,5,50,ILI_COLOR_ORANGE);
+    break;
+  case PULSE_FRE:
+  ili_draw_rectangle(120,60,5,50,ILI_COLOR_ORANGE);
+    break;
+  case PULSE_PULSE:
+  ili_draw_rectangle(170,60,5,50,ILI_COLOR_ORANGE);
+    break;
+
+  default:
+    break;
+  }
+  itoa(cheDoNumber, bufferCheDoNumber, 10);
+  ili_draw_string_withbg(80, 40, bufferCheDoNumber, ILI_COLOR_WHITE, ILI_COLOR_BLUE, &font_ubuntu_mono_24);
   //thuc hien tao man hinh
   //hien so dau tien
   itoa(setNumber, bufferNumber, 10);
@@ -143,7 +170,6 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
-  MX_GPIO_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   ili_init();
@@ -265,34 +291,6 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 2 */
   HAL_TIM_MspPostInit(&htim4);
-}
-
-/**
-  * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_GPIO_Init(void)
-{
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-  /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOD_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-
-  /*Configure GPIO pins : PB4 PB5 PB6 PB7 */
-  GPIO_InitStruct.Pin = GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
-
-  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 }
 
 /* USER CODE BEGIN 4 */

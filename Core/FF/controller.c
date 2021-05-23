@@ -7,12 +7,7 @@ int oldEncoderVal = 0;
 float compare = 999;
 extern TIM_HandleTypeDef htim4;
 
-typedef enum
-{
-    PULSE_NUMBER,
-    PULSE_FRE,
-    PULSE_PULSE
-} Tan_so;
+
 
 Tan_so tan_so = PULSE_NUMBER;
 uint8_t cheDoNumber = 1;
@@ -37,7 +32,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
         break;
     case GPIO_PIN_4:
         //Neu phim nay duoc nhan
-        if (tan_so == PULSE_NUMBER && cheDoNumber < 4)
+        if (tan_so == PULSE_NUMBER && cheDoNumber < 3)
         {
             cheDoNumber += 1;
         }
