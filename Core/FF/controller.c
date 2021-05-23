@@ -1,5 +1,4 @@
 #include "controller.h"
-#include "stm32f1xx_hal.h"
 #include "stm32f1xx_hal_tim.h"
 #include "stdio.h"
 
@@ -7,8 +6,6 @@ int encoderVal = 0;
 int oldEncoderVal = 0;
 float compare = 999;
 extern TIM_HandleTypeDef htim4;
-
-void readE();
 
 typedef enum
 {
@@ -36,7 +33,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     case GPIO_PIN_0:
     case GPIO_PIN_1:
         // readEncoderISR();
-        readE();
+        readE(GPIO_Pin);
         break;
     case GPIO_PIN_4:
         //Neu phim nay duoc nhan
@@ -122,12 +119,12 @@ void xuLyTinHieu(uint8_t isHigh)
 }
 uint32_t giatri = 0;
 float tinhxung = 0;
-uint32_t preXung = 72000000;
-uint32_t preSet = 0;
-uint32_t chiaPre;
-uint32_t checkGiaTri;
-uint32_t cnt;
-uint32_t checkPulse;
+// uint32_t preXung = 72000000;
+// uint32_t preSet = 0;
+// uint32_t chiaPre;
+// uint32_t checkGiaTri;
+// uint32_t cnt;
+// uint32_t checkPulse;
 
 void thietLapXungRa()
 {
@@ -179,8 +176,8 @@ void thietLapXungRa()
 
     compare = 2000000 / giatri;
     tinhxung = (compare / 100) * setPulse;
-    __HAL_TIM_SET_AUTORELOAD(&htim4, compare-1);
-    __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, tinhxung);
+    __HAL_TIM_SET_AUTORELOAD(&htim4, 63);
+    __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 32);
 
     // __HAL_TIM_SET_PRESCALER(&htim4, preSet - 1);
     // __HAL_TIM_SET_AUTORELOAD(&htim4, compare - 1);
@@ -193,8 +190,10 @@ uint8_t isWaiting = 0;
 uint32_t time = 0;
 uint32_t currentTime = 0;
 uint8_t test = 0;
+uint8_t isChanged = 0;
+uint16_t lastPin = 0;
 
-void readE()
+void readE(uint16_t GPIO_pin)
 {
     currentTime = HAL_GetTick();
 
@@ -207,13 +206,18 @@ void readE()
     if (tempNow == 0b10)
     {
         lastPos = tempNow;
-        return;
     }
     if (tempNow == 0b01)
     {
         lastPos = tempNow;
+    }
+
+    if (lastPin == GPIO_pin)
+    {
+
         return;
     }
+    lastPin = GPIO_pin;
 
     if (currentTime - time < 5)
     {
@@ -223,13 +227,24 @@ void readE()
     time = currentTime;
     if (tempNow == 0b00 && lastPos == 0b10)
     {
-        encoderVal++;
         countRead++;
     }
+
+    else if ((lastPos == 0b11) && (tempNow == 0b10))
+        countRead++;
+
     else if (tempNow == 0b11 && lastPos == 0b10)
     {
         countRead++;
     }
+    else if ((lastPos == 0b11) && (tempNow == 0b01))
+        countRead--;
+
+    else if ((lastPos == 0b00) && (tempNow == 0b01))
+        countRead++;
+    else if ((lastPos == 0b00) && (tempNow == 0b10))
+        countRead--;
+
     else if (tempNow == 0b00 && lastPos == 0b01)
     {
         countRead--;
@@ -241,12 +256,11 @@ void readE()
     if (countRead != oldCountRead)
     {
 
-        countRead++;
         if (countRead - oldCountRead > 0)
             xuLyTinHieu(1);
         else
             xuLyTinHieu(0);
-        thietLapXungRa();
+        //thietLapXungRa();
         oldCountRead = countRead;
         // uprintNumber(encoderVal);
     }
