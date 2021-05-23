@@ -60,6 +60,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
         break;
     case GPIO_PIN_7:
+    xuatXung();
         break;
 
     default:
@@ -119,14 +120,19 @@ void xuLyTinHieu(uint8_t isHigh)
 }
 uint32_t giatri = 0;
 float tinhxung = 0;
-// uint32_t preXung = 72000000;
-// uint32_t preSet = 0;
-// uint32_t chiaPre;
-// uint32_t checkGiaTri;
-// uint32_t cnt;
-// uint32_t checkPulse;
 
-void thietLapXungRa()
+uint8_t chiaPre = 0;
+uint32_t preXung = 72000000;
+
+uint32_t countTest = 0;
+uint32_t checkGiatri = 0;
+uint32_t cnt;
+uint32_t checkPulse;
+uint32_t giatri;
+uint32_t test1 = 0;
+uint32_t test2 = 0;
+
+void kiemtraxung()
 {
     //xu ly tin hieu xung ra
     //kiem tra du lieu  co cap nhat khong
@@ -138,51 +144,50 @@ void thietLapXungRa()
     _setNumberOLD = setNumber;
     _setTanSoOLD = setTanSo;
 
-    if (setTanSo)
+    countTest = 0;
+    for (uint32_t i = 1; i < 65000; i++)
     {
-        giatri = setNumber * 1000;
-    }
-    else
-    {
-        giatri = setNumber * 1;
-    }
-    //thuc hien xu ly de dua ra ket qua dung nhat
-    // uint16_t i = 0;
-    // while (i < 720)
-    // {
-    //     i++;
-    //     preSet = i;
-    //     //kiem tra compare co chia het cho compare va % khong
-    //     chiaPre = preXung % i;
-    //     if (chiaPre == 0)
-    //     {
-    //         checkGiaTri = (preXung / i) % giatri;
-    //         if (checkGiaTri == 0)
-    //         {
-    //             cnt = ((preXung / i) / giatri);
-    //             if (cnt > 65000)
-    //             {
-    //                 checkPulse = cnt % 100;
-    //                 if (checkPulse != 0)
-    //                 {
-    //                     compare = cnt;
-    //                     tinhxung = (compare / 100) * setPulse;
-    //                     break;
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
+        chiaPre = preXung % i;
+        if (chiaPre == 0)
+        {
+            if (setTanSo)
+            {
+                giatri = setNumber * 1000;
+            }
+            else
+            {
+                giatri = setNumber * 1;
+            }
+            checkGiatri = (preXung / i) % giatri;
+            if (checkGiatri == 0)
+            {
+                cnt = ((preXung / i) / giatri);
+                if (cnt < 65000)
+                {
+                    checkPulse = cnt % 100;
+                    if (checkPulse == 0)
+                    {
+                        test1 = i;
+                        test2 = cnt;
 
-    compare = 2000000 / giatri;
-    tinhxung = (compare / 100) * setPulse;
-    __HAL_TIM_SET_AUTORELOAD(&htim4, 63);
-    __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 32);
-
-    // __HAL_TIM_SET_PRESCALER(&htim4, preSet - 1);
-    // __HAL_TIM_SET_AUTORELOAD(&htim4, compare - 1);
-    // __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, tinhxung);
+                        countTest++;
+                        break;
+                    }
+                }
+            }
+        }
+    }
 }
+
+void xuatXung()
+{
+    HAL_Delay(10);
+    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_15);
+    __HAL_TIM_SET_PRESCALER(&htim4, test1 -1);
+    __HAL_TIM_SET_AUTORELOAD(&htim4, test2 - 1);
+    __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, (test2 / 100) * setPulse);
+}
+
 uint8_t countRead = 0;
 uint8_t oldCountRead = 0;
 uint8_t isWaiting = 0;
@@ -260,6 +265,7 @@ void readE(uint16_t GPIO_pin)
             xuLyTinHieu(1);
         else
             xuLyTinHieu(0);
+        kiemtraxung();
         //thietLapXungRa();
         oldCountRead = countRead;
         // uprintNumber(encoderVal);

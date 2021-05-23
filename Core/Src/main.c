@@ -59,6 +59,12 @@ extern uint16_t setTanSo;
 uint16_t setTanSoOLD;
 uint32_t count = 10;
 extern int encoderVal;
+char bufferTest[3];
+char bufferTest1[10];
+char bufferTest2[10];
+extern uint32_t test1;
+extern uint32_t test2;
+extern uint32_t countTest;
 
 /* USER CODE END PV */
 
@@ -72,18 +78,7 @@ static void MX_TIM4_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint8_t chiaPre = 0;
-uint32_t preXung = 72000000;
-char bufferTest[3];
-char bufferTest1[10];
-char bufferTest2[10];
-uint32_t countTest = 0;
-uint32_t checkGiatri = 0;
-uint32_t cnt;
-uint32_t checkPulse;
-uint32_t giatri1;
-uint32_t test1 = 0;
-uint32_t test2 = 0;
+
 void createScreen()
 {
 
@@ -92,46 +87,6 @@ void createScreen()
   {
     return;
   }
-
-  countTest = 0;
-  for (uint32_t i = 1; i < 65000; i++)
-  {
-    chiaPre = preXung % i;
-    if (chiaPre == 0)
-    {
-      
-    if (setTanSo)
-    {
-        giatri1 = setNumber * 1000;
-    }
-    else
-    {
-        giatri1 = setNumber * 1;
-    }
-      checkGiatri = (preXung / i) % giatri1;
-      if (checkGiatri == 0)
-      {
-        cnt = ((preXung / i) / giatri1);
-        if (cnt < 65000)
-        {
-          checkPulse = cnt % 100;
-          if (checkPulse == 0)
-          {
-            test1 = i;
-            test2 = cnt;
-            HAL_Delay(10);
-            HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_15);
-            __HAL_TIM_SET_PRESCALER(&htim4, i - 1);
-            __HAL_TIM_SET_AUTORELOAD(&htim4, cnt - 1);
-            __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3,(cnt/100)*50);
-            countTest++;
-            break;
-          }
-        }
-      }
-    }
-  }
-
   setTanSoOLD = setTanSo;
   setNumberOLD = setNumber;
   setPulseOLD = setPulse;

@@ -5,6 +5,7 @@
 
 void readEncoderISR();
 void thietLapXungRa();
+void xuatXung();
 void readE(uint16_t GPIO_pin);
 
 
