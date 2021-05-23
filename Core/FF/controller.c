@@ -18,6 +18,7 @@ uint16_t _setTanSoOLD = 0;
 uint8_t setPulse = 50;
 uint8_t _setPulseOLD = 0;
 uint8_t toggleEncoder = 0;
+uint8_t isChangedBackground = 1;
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
@@ -41,6 +42,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
             cheDoNumber = 1;
             tan_so = PULSE_NUMBER;
         }
+        isChangedBackground = 1;
         break;
     case GPIO_PIN_5:
         tan_so = PULSE_FRE;
@@ -48,14 +50,17 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
             setTanSo = 1;
         else
             setTanSo = 0;
+        isChangedBackground = 1;
         break;
     case GPIO_PIN_6:
         //cong tru xung
         tan_so = PULSE_PULSE;
+        isChangedBackground = 1;
 
         break;
     case GPIO_PIN_7:
     xuatXung();
+    isChangedBackground = 1;
         break;
 
     default:
@@ -166,7 +171,7 @@ void kiemtraxung()
                         test2 = cnt;
 
                         countTest++;
-                        break;
+                          break;
                     }
                 }
             }
@@ -261,6 +266,7 @@ void readE(uint16_t GPIO_pin)
         else
             xuLyTinHieu(0);
         kiemtraxung();
+        isChangedBackground = 1;
         //thietLapXungRa();
         oldCountRead = countRead;
         // uprintNumber(encoderVal);

@@ -52,11 +52,9 @@ char bufferNumber[3];
 // extern char tanSo[10];
 char bufferPulse[2];
 extern uint16_t setNumber;
-uint16_t setNumberOLD = 0;
 extern uint8_t setPulse;
 uint8_t setPulseOLD;
 extern uint16_t setTanSo;
-uint16_t setTanSoOLD;
 uint32_t count = 10;
 extern int encoderVal;
 char bufferTest[3];
@@ -68,7 +66,7 @@ extern uint32_t test2;
 extern uint32_t countTest;
 extern Tan_so tan_so;
 extern uint8_t cheDoNumber;
-uint8_t cheDoNumberOLD;
+extern uint8_t isChangedBackground;
 
 /* USER CODE END PV */
 
@@ -86,21 +84,12 @@ void createScreen()
 {
 
   //kiem tra gia tri truoc do
-  if (setTanSo == setTanSoOLD && setNumber == setNumberOLD && setPulse == setPulseOLD && cheDoNumber == cheDoNumberOLD)
-  {
+  if(isChangedBackground == 0)
     return;
-  }
-  setTanSoOLD = setTanSo;
-  setNumberOLD = setNumber;
-  setPulseOLD = setPulse;
-  cheDoNumberOLD = cheDoNumber;
-
+  isChangedBackground = 0;
 
   ili_fill_rect(40, 30, 200, 110, ILI_COLOR_DARKCYAN);
 
-
-
-  
   //cap nhat mui ten
   switch (tan_so)
   {
@@ -134,10 +123,10 @@ void createScreen()
   ili_draw_string_withbg(70, 110, bufferTest, ILI_COLOR_WHITE, ILI_COLOR_BLUE, &font_ubuntu_mono_24);
 
   itoa(test1, bufferTest1, 10);
-  ili_draw_string_withbg(90, 110, bufferTest1, ILI_COLOR_WHITE, ILI_COLOR_BLUE, &font_ubuntu_mono_24);
+  ili_draw_string_withbg(120, 110, bufferTest1, ILI_COLOR_WHITE, ILI_COLOR_BLUE, &font_ubuntu_mono_24);
 
   itoa(test2, bufferTest2, 10);
-  ili_draw_string_withbg(140, 110, bufferTest2, ILI_COLOR_WHITE, ILI_COLOR_BLUE, &font_ubuntu_mono_24);
+  ili_draw_string_withbg(170, 110, bufferTest2, ILI_COLOR_WHITE, ILI_COLOR_BLUE, &font_ubuntu_mono_24);
 
   HAL_Delay(50);
 }
